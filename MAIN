@@ -1,0 +1,275 @@
+// MAIN CPP
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include "strutils.h" 
+#include <fstream>
+#include <sstream>
+#include "hw4.h" //name of the header file (privided below)
+
+using namespace std;
+coordStack stack = coordStack();  // constructor, I used the class in functions that's why it's global, I couldn't find any other way
+
+// start: taken from matrix.cpp
+void deletematrix(char **&matrix, int row, int column) // to release the memory of the matrix
+{
+	for(int i=0; i<row; i++)
+	{
+		delete [] matrix[i];
+	}
+	delete [] matrix;
+}
+// end: taken from matrix.cpp
+
+void print(char **&matrix, int row, int column) // to print the matrix
+{
+	for ( int i = 0; i<row; i++)
+	{
+		for (int j = 0; j<column; j++)
+		{
+			cout << matrix[i][j];
+		}
+		cout << endl;
+	}
+
+}
+
+void mappingfunc(char **&matrix, coordnode *&node, char fillingchar)
+{
+	stack.push(node); // to set the given coordinate as top
+	coordnode *ptr = node;
+	matrix[ptr->row][ptr->column] = fillingchar; // to change the coordinate with filling char
+	while (stack.isEmpty()== false)  // If stack is empty, it means we've visited all the empty cells
+	{                                // the stack will be filled by empty cell coordinates and then will be empty again
+		if ( matrix[ptr->row +1][ptr->column] == ' ' ) // these conditions check whether the neighbour is empty
+		{                                              // we don't need to check for the range issue because of the walls,
+			matrix[ptr->row +1][ptr->column] = fillingchar; // it will never reach the edges that's why there will be no out of range issue
+			coordnode *newnode = new coordnode;  
+			newnode->column = ptr->column;
+			newnode->row = ptr->row +1;
+			stack.push(newnode);  // adding this new cell to the stack
+			ptr = newnode;  // to move on the path
+		}
+		else if ( matrix[ptr->row][ptr->column+1] == ' ' )
+		{
+			matrix[ptr->row][ptr->column+1] = fillingchar;
+			coordnode *newnode = new coordnode;
+			newnode->column = ptr->column+1;
+			newnode->row = ptr->row ;
+			stack.push(newnode);
+			ptr= newnode;
+		}
+		else if ( matrix[ptr->row -1][ptr->column] == ' ' )
+		{
+			matrix[ptr->row -1][ptr->column] = fillingchar;
+			coordnode *newnode = new coordnode;
+			newnode->column = ptr->column;
+			newnode->row = ptr->row-1 ;
+			stack.push(newnode);
+			ptr= newnode;
+		}
+		else if ( matrix[ptr->row][ptr->column-1] == ' ' )
+		{
+			matrix[ptr->row][ptr->column-1] = fillingchar;
+			coordnode *newnode = new coordnode;
+			newnode->column = ptr->column-1;
+			newnode->row = ptr->row ;
+			stack.push(newnode);
+			ptr= newnode;
+		}
+		else
+		{
+			ptr = stack.pop();  // to go backwards, this pop function will return the top node, so we do not deal with the
+		}                       // issue of top beeing a private data member, we can reach top in the main function
+	}
+}
+
+void fillingmat ( char **&matrix, int row, int column, ifstream &input)
+{
+	input.clear(); 
+	input.seekg(0);
+	string line;
+	int count = 0;
+	while( !input.eof())
+	{
+		while(getline(input, line)) // reading line by line
+		{
+			istringstream input(line);
+			for (int i = 0; i< column; i++)
+			{
+				matrix[count][i] = line[i];  // to turn the file into matrix
+			}
+			count++;
+		}
+	}
+}
+
+bool rowcolcheck (string x) // this function checks if the row & column values are valid
+{
+	int length = x.length();
+	for (int i = 0; i<length; i++)
+	{
+		if (int(x[i]) < 48 || int(x[i]) > 57)
+		{
+			cout << x << " is not valid! " << endl;
+			return false;
+		}
+		else if ( atoi(x) < 3 )
+		{
+			cout << x << " is not valid! " << endl;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+}
+
+bool emptycell(int x, int y, char **&matrix)  // if the cell is ' ' or occupied
+{
+	if (matrix[x][y] == ' ')
+	{
+		return true;
+	}
+	else
+	{
+		cout << "Starting point is already occupied. ";
+		return false;
+	}
+}
+
+bool xycheck (string x, string y, int row, int column) // checks the validity of the corrdinate
+{
+	int xlength = x.length();
+	int ylength = y.length();
+	for (int i = 0; i<xlength; i++)
+	{
+		if (int(x[i]) < 48 || int(x[i]) > 57)
+		{
+			cout <<"Invalid coordinate! " << endl;
+			return false;
+		}
+		else if ( atoi(x) >= row )
+		{
+			cout << "Invalid coordinate! " << endl;
+			return false;
+		}
+	}
+	for (int i = 0; i<ylength; i++)
+	{
+		if (int(y[i]) < 48 || int(y[i]) > 57)
+		{
+			cout <<"Invalid coordinate! " << endl;
+			return false;
+		}
+		else if ( atoi(y) >= column )
+		{
+			cout << "Invalid coordinate! " << endl;
+			cout << "Terminating... " << endl;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool charcheck(char fillingchar) // checks the filling char validity
+{
+	if ( fillingchar == 'x' || fillingchar == 'X')
+	{
+		cout << "Filling char is not valid! " << endl;
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+int main()
+{
+
+	string srow,scolumn;
+	cout << "Enter the number of rows: " ;
+	cin >> srow;
+	while (rowcolcheck(srow) == false)
+	{
+		cout << "Enter the number of rows: " ;
+	    cin >> srow;
+	}
+	int row = atoi(srow);
+
+	cout << "Enter the number of columns: " ;
+	cin >> scolumn;
+	while (rowcolcheck(scolumn) == false)
+	{
+		cout << "Enter the number of columns: " ;
+	    cin >> scolumn;
+	}
+	int column = atoi(scolumn);
+	
+	ifstream input;
+    string filename;
+	cout << "Please enter file name: ";
+	cin >> filename;
+	input.open(filename.c_str());
+
+    while ( input.fail() ) //if file could not be openned
+    {   
+        cout << "Cannot open a file named " << filename << endl;
+		cout << "Please enter file name: ";
+		cin >> filename;
+		input.open(filename.c_str());
+    }
+	
+	//start: taken from matrix.cpp
+	char** matrix = new char*[row];
+	for(int i =0; i<row; i++)
+	{
+		matrix[i] = new char[column];
+	}
+	//end: taken from matrix.cpp
+
+	fillingmat ( matrix, row, column, input);
+
+	string sx, sy;
+	cout << "Enter the starting point: " ;
+	cin >> sx >> sy;
+	while (xycheck(sx, sy, row, column) == false)
+	{
+		cout << "Enter the starting point: " ;
+	    cin >> sx >> sy;
+	}
+
+	int xcoord = atoi(sx);
+	int ycoord = atoi(sy);
+
+	if (emptycell(xcoord, ycoord, matrix) == true)
+	{
+		coordnode *newnode = new coordnode;  
+		newnode->column = ycoord;
+		newnode->row = xcoord;
+		newnode->next = NULL;
+
+		char fillingchar;
+		cout << "Enter the filling char: ";
+		cin >> fillingchar;
+
+		while (charcheck(fillingchar) == false)
+		{
+			cout << "Enter the filling char: ";
+			cin >> fillingchar;
+		}
+		mappingfunc(matrix, newnode, fillingchar);
+		print ( matrix, row, column);
+		stack.~coordStack(); 
+
+		deletematrix(matrix,row,column);
+		return 0;
+	}
+	else
+	{
+		return 0;
+	}
+}
