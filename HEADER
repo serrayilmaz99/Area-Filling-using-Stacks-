@@ -1,0 +1,27 @@
+#ifndef HW4_H
+#define HW4_H
+
+// I used DynamicStringQueue.h in this file
+
+struct coordnode
+{
+	int row;
+	int column;
+	coordnode* next; // linked list
+};
+
+class coordStack
+{
+private:
+	coordnode *top;
+
+public:
+	coordStack(); // constructor
+	~coordStack(); // destructor, but I didn't understand the need of destructor because the filling will be ended when
+	               //the stack is empty (mappingfunc) so what do we destruct exactly?
+	void push(coordnode* coord);
+	coordnode* pop();
+	bool isEmpty();
+};
+	
+#endif
