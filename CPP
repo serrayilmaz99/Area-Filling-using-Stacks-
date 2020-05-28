@@ -1,0 +1,65 @@
+#include "hw4.h"
+#include <iostream>
+using namespace std;
+
+// I used DynamicStringQueue.cpp in this file
+
+coordStack::coordStack () 
+{
+	top = NULL;
+}
+coordStack::~coordStack()
+{
+	coordnode * ptr = top;
+    while (ptr != NULL) 
+	{
+		coordnode * temp = ptr->next;
+		delete ptr;
+		ptr = temp;
+	}
+}
+
+void coordStack::push(coordnode*coord)
+{
+
+	if (isEmpty())
+	{
+		coord->next == NULL;
+		top = coord;
+	}
+	else	
+	{
+		coord->next = top;
+		top = coord;
+	}
+}
+
+coordnode* coordStack::pop()
+{
+	coordnode *temp;
+
+	if (isEmpty())
+	{
+		return NULL;
+	}
+	else	// pop value off top of stack
+	{
+		temp = top->next;
+		delete top;
+		top = temp;
+		return top;
+	}
+}
+
+
+bool coordStack::isEmpty()
+{
+	bool status;
+
+	if (top == NULL)
+		status = true;
+	else
+		status = false;
+
+	return status;
+}
